@@ -1,0 +1,26 @@
+# Archivos de Python
+*.py[cod]
+*$py.class
+
+# Entorno virtual
+.venv/
+
+# Archivos de configuración
+*.env
+*.toml
+*.yaml
+*.json
+
+# Archivos de caché
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de editor
+.vscode/
+.idea/
+
+# Otros archivos
+.DS_Store
+Thumbs.db
