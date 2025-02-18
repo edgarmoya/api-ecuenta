@@ -1,6 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, Query
 import tempfile
-from extract_pdf import ExtractPDF
+from app.extract_pdf import ExtractPDF
 
 app = FastAPI()
 
