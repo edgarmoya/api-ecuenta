@@ -1,20 +1,14 @@
-## Estado de Cuenta API
+# Estado de Cuenta API
 
----
-
-### Descripción del proyecto
+## Descripción del proyecto
 Esta API permite analizar los estados de cuenta de los agentes de telecomunicaciones que pueden ser descargados a través de [**Transfermóvil**](https://www.etecsa.cu/es/aplicaciones/transfermovil). Extrae el contenido, filtra las transacciones, resume los datos y proporciona métricas como el total gastado en recargas, depósitos y ganancias
 
----
-
-### Características
+## Características
 - 📥 Permite subir los archivos PDF y extrae su contenido
 - 📊 Filtra las transacciones por estado (Exitosas, Fallidas o Todas)
 - 💰 Cálculo del total depositado, gastado en recargas y ganancias obtenidas
 
----
-
-### Instalación
+## Instalación
 
 ```bash
 # Clonar el repositorio
@@ -31,20 +25,15 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
----
-
-### Uso
+## Uso
 
 ```bash
 # Ejecutar el servidor de FastAPI
 uvicorn app.main:app --reload
 ```
-
 Visita la documentación interactiva en: [http://localhost:8000/docs](http://localhost:8000/docs)
 
----
-
-### Endpoints
+## Endpoints
 
 | Método | Endpoint          | Descripción                              |
 |--------|-------------------|------------------------------------------|
@@ -54,9 +43,7 @@ Visita la documentación interactiva en: [http://localhost:8000/docs](http://loc
 
 > Nota: Todos los endpoints permiten obtener los datos paginados si se desea y filtrarlos por su estado (Exitosas, Fallidas o Todas).
 
----
-
-### Contribuciones
+## Contribuciones
 
 1. Haz un fork del repositorio  
 2. Crea una nueva rama: `git checkout -b nueva-funcionalidad`  
@@ -64,7 +51,5 @@ Visita la documentación interactiva en: [http://localhost:8000/docs](http://loc
 4. Sube los cambios: `git push origin nueva-funcionalidad`  
 5. Envía un pull request  
 
----
-
-### Licencia
+## Licencia
 Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
