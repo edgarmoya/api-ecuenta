@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from app.schemas.user import UserCreate, UserRead, UserLogin, Token
 from app.services.user_service import register_user, login_user
-from app.db.models import User
-from app.core.security import get_current_superuser
 
 router = APIRouter()
 
