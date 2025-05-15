@@ -4,10 +4,10 @@ from app.services.user_service import register_user, login_user
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserRead)
+@router.post("/register", summary="Registrar usuario", response_model=UserRead)
 def register(user: UserCreate):
     return register_user(user)
 
-@router.post("/login", response_model=Token)
+@router.post("/login", summary="Autenticar usuario", response_model=Token)
 def login(user: UserLogin):
     return login_user(user)
