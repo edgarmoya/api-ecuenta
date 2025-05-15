@@ -2,8 +2,11 @@ from fastapi import APIRouter, Depends
 from app.services.pdf_analyzer import PdfAnalyzer
 from app.schemas.pdf import PdfContentRequest, PdfTransactionsResponse, PdfDepositsResponse, PdfSalesResponse
 import tempfile
+from app.core.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_current_user)]
+)
 
 @router.post("/transactions/", summary="Obtener todas las transacciones", response_model=PdfTransactionsResponse)
 async def transactions(params: PdfContentRequest = Depends()):
