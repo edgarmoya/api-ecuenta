@@ -7,7 +7,7 @@ from app.core.security import get_current_superuser
 router = APIRouter()
 
 @router.post("/register", response_model=UserRead)
-def register(user: UserCreate, current_user: User = Depends(get_current_superuser)):
+def register(user: UserCreate):
     return register_user(user)
 
 @router.post("/login", response_model=Token)
