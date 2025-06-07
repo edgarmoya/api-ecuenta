@@ -92,7 +92,7 @@ async def sales(params: PdfContentRequest = Depends()):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
             temp_pdf.write(await params.file.read())
 
-        total_amount, total_saldo, total_propia, total_movil, total_nauta, total_nauta_hogar, total_factura, profits, pdf_data = PdfAnalyzer(temp_pdf.name).sales(transaction_status=status)
+        total_amount, total_saldo, total_propia, total_movil, total_nauta, total_nauta_hogar, total_factura, total_electrica, profits, pdf_data = PdfAnalyzer(temp_pdf.name).sales(transaction_status=status)
 
         # If no exist `page` and `limit`, return all data
         if page is None or limit is None:
@@ -104,6 +104,7 @@ async def sales(params: PdfContentRequest = Depends()):
                 total_nauta=total_nauta,
                 total_nauta_hogar=total_nauta_hogar,
                 total_factura=total_factura,
+                total_electrica=total_electrica,
                 profits=profits, 
                 results=pdf_data
             )
@@ -122,6 +123,7 @@ async def sales(params: PdfContentRequest = Depends()):
             total_nauta=total_nauta,
             total_nauta_hogar=total_nauta_hogar,
             total_factura=total_factura,
+            total_electrica=total_electrica,
             profits=profits,
             results=paginated_data
         )

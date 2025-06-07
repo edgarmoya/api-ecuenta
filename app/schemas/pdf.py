@@ -33,5 +33,6 @@ class PdfSalesResponse(BaseModel):
     total_nauta: float
     total_nauta_hogar: float
     total_factura: float
+    total_electrica: float
     profits: float
     results: List[TransactionData]
