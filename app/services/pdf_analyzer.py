@@ -66,7 +66,7 @@ class PdfAnalyzer:
     def sales(self, transaction_status: str = 'successful') -> List[Dict]:
         """Calculates the total amount deducted for recharges"""
         total_amount, total_saldo, total_movil, total_nauta = 0, 0, 0, 0
-        total_nauta_hogar, total_factura, total_propia, total_electrica = 0, 0, 0, 0
+        total_nauta_hogar, total_factura, total_propia, total_electrica, total_paquetes = 0, 0, 0, 0, 0
         data = []
         for row in self.transactions(transaction_status):
             if row['transaction_type'] == 'Venta de Saldo AT':
@@ -83,8 +83,10 @@ class PdfAnalyzer:
                 total_factura += row['amount_paid']
             if row['transaction_type'] == 'Factura Electrica':
                 total_electrica += row['amount_paid']
-            if row['transaction_type'] not in ['Estado de Cuenta', 'Recarga Bolsa CUP']:
+            if row['transaction_type'] == 'Compra Paquetes Cubacel':
+                total_paquetes += row['amount_paid']
+            if row['transaction_type'] not in ['Estado de Cuenta', 'Recarga Bolsa CUP', 'Transferencia Banco']:
                 data.append(row)
                 total_amount += row['amount_paid']
         profits = total_amount / 0.9 - total_amount
-        return round(total_amount, 2), round(total_saldo, 2), round(total_propia, 2), round(total_movil, 2), round(total_nauta, 2), round(total_nauta_hogar, 2), round(total_factura, 2), round(total_electrica, 2), round(profits, 2), data
+        return round(total_amount, 2), round(total_saldo, 2), round(total_propia, 2), round(total_movil, 2), round(total_nauta, 2), round(total_nauta_hogar, 2), round(total_factura, 2), round(total_electrica, 2), round(total_paquetes, 2), round(profits, 2), data
