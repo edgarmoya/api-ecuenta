@@ -1,6 +1,10 @@
+import logging
+
 from .pdf_extractor import PdfExtractor
 from collections import Counter
-from typing import List, Dict
+
+logger = logging.getLogger(__name__)
+
 
 class PdfAnalyzer:
     """Class for analyzing data extracted from a PDF file"""
@@ -13,11 +17,11 @@ class PdfAnalyzer:
             file_path (str): Path to the PDF file to be processed.
         """
         try:
-            self.__table: List[Dict] = PdfExtractor(file_path).read_pdf(return_format='dict')
+            self.__table: list[dict] = PdfExtractor(file_path).read_pdf(return_format='dict')
         except Exception as e:
-            print(f'{e}')
+            logger.info(f'{e}')
 
-    def remove_all_duplicates_by_supplier(self, transactions: List[Dict]) -> List[Dict]:
+    def remove_all_duplicates_by_supplier(self, transactions: list[dict]) -> list[dict]:
         """
         Removes all transactions where the supplier appears more than once in the list
 
@@ -33,7 +37,7 @@ class PdfAnalyzer:
         # Filter transactions, removing those whose supplier appears more than once
         return list(filter(lambda t: supplier_counts[t['supplier_id']] == 1, transactions))
 
-    def transactions(self, transaction_status: str = 'all') -> List[Dict]:
+    def transactions(self, transaction_status: str = 'all') -> list[dict]:
         """Return transactions based on the specified status
 
         Args:
@@ -53,7 +57,7 @@ class PdfAnalyzer:
         else:
             raise ValueError("El estado de la transacción no es válido. Debe ser 'all', 'successful' o 'failed'")
 
-    def deposits(self, transaction_status: str = 'successful') -> List[Dict]:
+    def deposits(self, transaction_status: str = 'successful') -> tuple[float, list]:
         """Calculates the total amount deposited in the bank"""
         total_amount = 0
         data = []
@@ -61,30 +65,59 @@ class PdfAnalyzer:
             if row['transaction_type'] == 'Recarga Bolsa CUP':
                 data.append(row)
                 total_amount += row['amount_paid']
+
         return total_amount, data
 
-    def sales(self, transaction_status: str = 'successful') -> List[Dict]:
+    def sales(self, transaction_status: str = 'successful') -> tuple[float, float, float, float, float, float, float, float, float, float, list[dict]]:
         """Calculates the total amount deducted for recharges"""
-        total_amount, total_saldo, total_movil, total_nauta = 0, 0, 0, 0
-        total_nauta_hogar, total_factura, total_propia, total_electrica = 0, 0, 0, 0
+        totals = {
+            'total_amount': 0,
+            'total_saldo': 0,
+            'total_propia': 0,
+            'total_movil': 0,
+            'total_nauta': 0,
+            'total_nauta_hogar': 0,
+            'total_factura': 0,
+            'total_electrica': 0,
+            'total_paquetes': 0
+        }
+
+        excluded_types = ['Estado de Cuenta', 'Recarga Bolsa CUP', 'Transferencia Banco']
+        type_mapping = {
+            'Venta de Saldo AT': 'total_saldo',
+            'Recarga Propia AT': 'total_propia',
+            'Recarga Movil': 'total_movil',
+            'Recarga Nauta AT': 'total_nauta',
+            'Recarga Nauta Hogar AT': 'total_nauta_hogar',
+            'Pago Factura AT': 'total_factura',
+            'Factura Electrica': 'total_electrica',
+            'Compra Paquetes Cubacel': 'total_paquetes'
+        }
+
         data = []
         for row in self.transactions(transaction_status):
-            if row['transaction_type'] == 'Venta de Saldo AT':
-                total_saldo += row['amount_paid']
-            if row['transaction_type'] == 'Recarga Propia AT':
-                total_propia += row['amount_paid']
-            if row['transaction_type'] == 'Recarga Movil':
-                total_movil += row['amount_paid']
-            if row['transaction_type'] == 'Recarga Nauta AT':
-                total_nauta += row['amount_paid']
-            if row['transaction_type'] == 'Recarga Nauta Hogar AT':
-                total_nauta_hogar += row['amount_paid']
-            if row['transaction_type'] == 'Pago Factura AT':
-                total_factura += row['amount_paid']
-            if row['transaction_type'] == 'Factura Electrica':
-                total_electrica += row['amount_paid']
-            if row['transaction_type'] not in ['Estado de Cuenta', 'Recarga Bolsa CUP']:
+            t_type = row.get('transaction_type')
+            amount = row.get('amount_paid', 0)
+
+            if t_type in type_mapping:
+                totals[type_mapping[t_type]] += amount
+
+            if t_type not in excluded_types:
+                totals['total_amount'] += amount
                 data.append(row)
-                total_amount += row['amount_paid']
-        profits = total_amount / 0.9 - total_amount
-        return round(total_amount, 2), round(total_saldo, 2), round(total_propia, 2), round(total_movil, 2), round(total_nauta, 2), round(total_nauta_hogar, 2), round(total_factura, 2), round(total_electrica, 2), round(profits, 2), data
+
+        profits = totals['total_amount'] / 0.9 - totals['total_amount']
+
+        return (
+            round(totals['total_amount'], 2),
+            round(totals['total_saldo'], 2),
+            round(totals['total_propia'], 2),
+            round(totals['total_movil'], 2),
+            round(totals['total_nauta'], 2),
+            round(totals['total_nauta_hogar'], 2),
+            round(totals['total_factura'], 2),
+            round(totals['total_electrica'], 2),
+            round(totals['total_paquetes'], 2),
+            round(profits, 2),
+            data
+        )

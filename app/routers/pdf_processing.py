@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+
 from app.services.pdf_analyzer import PdfAnalyzer
 from app.schemas.pdf import PdfContentRequest, PdfTransactionsResponse, PdfDepositsResponse, PdfSalesResponse
-import tempfile
+from app.utils.temp_pdf import temp_pdf_file
 
 router = APIRouter()
+
 
 @router.post("/transactions/", summary="Obtener todas las transacciones", response_model=PdfTransactionsResponse)
 async def transactions(params: PdfContentRequest = Depends()):
@@ -21,10 +23,10 @@ async def transactions(params: PdfContentRequest = Depends()):
         limit = params.limit if params.limit else None
 
         # Save the PDF temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
-            temp_pdf.write(await params.file.read())
-
-        pdf_data = PdfAnalyzer(temp_pdf.name).transactions(transaction_status=status)
+        async with temp_pdf_file(params) as temp_pdf_path:
+            pdf_data = PdfAnalyzer(temp_pdf_path).transactions(
+                transaction_status=status
+            )
 
         # If no exist `page` and `limit`, return all data
         if page is None or limit is None:
@@ -37,7 +39,7 @@ async def transactions(params: PdfContentRequest = Depends()):
             total=len(pdf_data), page=page, limit=limit, results=paginated_data
         )
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/deposits/", summary="Obtener todos los depósitos realizados", response_model=PdfDepositsResponse)
 async def deposits(params: PdfContentRequest = Depends()):
@@ -55,10 +57,10 @@ async def deposits(params: PdfContentRequest = Depends()):
         limit = params.limit if params.limit else None
 
         # Save the PDF temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
-            temp_pdf.write(await params.file.read())
-
-        total_amount, pdf_data = PdfAnalyzer(temp_pdf.name).deposits(transaction_status=status)
+        async with temp_pdf_file(params) as temp_pdf_path:
+            total_amount, pdf_data = PdfAnalyzer(temp_pdf_path).deposits(
+                transaction_status=status
+            )
 
         # If no exist `page` and `limit`, return all data
         if page is None or limit is None:
@@ -71,7 +73,7 @@ async def deposits(params: PdfContentRequest = Depends()):
             total=len(pdf_data), page=page, limit=limit, total_amount=total_amount, results=paginated_data
         )
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/sales/", summary="Obtener todas las ventas realizadas y las ganancias", response_model=PdfSalesResponse)
 async def sales(params: PdfContentRequest = Depends()):
@@ -89,10 +91,10 @@ async def sales(params: PdfContentRequest = Depends()):
         limit = params.limit if params.limit else None
 
         # Save the PDF temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
-            temp_pdf.write(await params.file.read())
-
-        total_amount, total_saldo, total_propia, total_movil, total_nauta, total_nauta_hogar, total_factura, total_electrica, profits, pdf_data = PdfAnalyzer(temp_pdf.name).sales(transaction_status=status)
+        async with temp_pdf_file(params) as temp_pdf_path:
+            total_amount, total_saldo, total_propia, total_movil, total_nauta, total_nauta_hogar, total_factura, total_electrica, total_paquetes, profits, pdf_data = PdfAnalyzer(temp_pdf_path).sales(
+                transaction_status=status
+            )
 
         # If no exist `page` and `limit`, return all data
         if page is None or limit is None:
@@ -105,6 +107,7 @@ async def sales(params: PdfContentRequest = Depends()):
                 total_nauta_hogar=total_nauta_hogar,
                 total_factura=total_factura,
                 total_electrica=total_electrica,
+                total_paquetes=total_paquetes,
                 profits=profits, 
                 results=pdf_data
             )
@@ -124,8 +127,9 @@ async def sales(params: PdfContentRequest = Depends()):
             total_nauta_hogar=total_nauta_hogar,
             total_factura=total_factura,
             total_electrica=total_electrica,
+            total_paquetes=total_paquetes,
             profits=profits,
             results=paginated_data
         )
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))

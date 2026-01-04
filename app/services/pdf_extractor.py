@@ -2,6 +2,9 @@ import tabula
 import re
 import os
 
+from typing import Literal, Union
+
+
 class PdfExtractor:
     """Extracts table information from PDF files"""
 
@@ -28,7 +31,7 @@ class PdfExtractor:
 
     def __dataframe_to_list(self, df) -> list:
         """Converts a Pandas DataFrame object into a list of lists in Python."""
-        return [p.values.tolist() for p in list(df)]
+        return [p.values.tolist() for p in df]
 
     def __flatten_pages(self, pages: list) -> list:
         """This function flattens a list of pages, returning a list of lines."""
@@ -43,7 +46,7 @@ class PdfExtractor:
         """Filter line to obtain only lines with important content"""
         pattern = '^(nan)+$'
         txt = ''.join(str(cell) for cell in line)
-        return False if re.match(pattern, txt) else True
+        return not re.match(pattern, txt)
 
     def __convert_to_dict(self, data: list) -> list[dict]:
         """
@@ -68,33 +71,44 @@ class PdfExtractor:
             "payment_type": row[9],
         } for row in data]
 
-    def read_pdf(self, return_format="list") -> list:
-        """Reads the corresponding PDF file, extracts data from the tables on each page,
-        and returns the data either as a list of lists or a dictionary.
+    def read_pdf(self, return_format: Literal["list", "dict"] = "list") -> Union[list, list[dict]]:
+        """
+        Reads the PDF file, extracts table data from all pages,
+        and returns it as a list of rows or a list of dictionaries.
 
         Args:
-        return_format (str): The format to return the data in, either 'list' or 'dict'. Default is 'list'.
+            return_format: Output format, either 'list' or 'dict'.
 
         Returns:
-            A list of lists or a dictionary containing the data from the table.
-        """
-        try:
-            # Check if 'return_format' is valid
-            assert return_format in ['list', 'dict'], "El formato debe ser 'list' o 'dict'"
+            Extracted data in the requested format.
 
-            # read PDF file from path
-            df = tabula.read_pdf(self.__file_path, pages='all', guess=True)
-            # convert dataframe to list
-            ls_all_pages = self.__dataframe_to_list(df)
-            # flatten list of pages
-            ls_lines = self.__flatten_pages(ls_all_pages)
-            if return_format == "dict":
-                return self.__convert_to_dict(ls_lines)
-            else:
-                return ls_lines
-        except FileNotFoundError as e:
-            return f'No se ha encontrado el archivo especificado en la ruta "{self.__file_path}".'
-        except AssertionError as e:
-            return str(e)
-        except Exception:
-            return 'Error al leer los datos, verifique que sea un archivo correcto'
+        Raises:
+            ValueError: If return_format is invalid.
+            FileNotFoundError: If the PDF file does not exist.
+            RuntimeError: If the PDF cannot be read or parsed.
+        """
+        # Check if 'return_format' is valid
+        if return_format not in {"list", "dict"}:
+            raise ValueError("El formato debe ser 'list' o 'dict'")
+
+        try:
+            df = tabula.read_pdf(
+                self.__file_path,
+                pages="all",
+                guess=True,
+                encoding="latin-1",
+            )
+        except FileNotFoundError:
+            raise
+        except Exception as exc:
+            raise RuntimeError(
+                f"Error al leer el PDF: {self.__file_path}"
+            ) from exc
+
+        pages = self.__dataframe_to_list(df)
+        lines = self.__flatten_pages(pages)
+
+        if return_format == "dict":
+            return self.__convert_to_dict(lines)
+
+        return lines
