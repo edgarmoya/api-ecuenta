@@ -1,6 +1,8 @@
 from fastapi import FastAPI
-from app.api.v1.endpoints import pdf_processing
 from fastapi.responses import ORJSONResponse
+
+from app.routers import pdf_processing
+
 
 app = FastAPI(
     title="Estado de Cuenta API",
