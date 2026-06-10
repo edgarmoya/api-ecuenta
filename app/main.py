@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import pdf_processing
 
@@ -16,6 +17,17 @@ app = FastAPI(
     ),
     version="1.0.0",
     default_response_class=ORJSONResponse
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://ecuenta.vercel.app"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(pdf_processing.router, prefix="/pdf", tags=['Procesar PDF'])
